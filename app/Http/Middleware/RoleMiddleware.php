@@ -12,9 +12,9 @@ class RoleMiddleware
     {
         abort_unless(
             $request->user() && in_array($request->user()->role, $roles, true),
-            403
+            403 // HTTP 403 Forbidden
         );
-
+    
         return $next($request);
     }
 }

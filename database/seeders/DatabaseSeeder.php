@@ -35,9 +35,20 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['username' => 'pustakawan'],
+            [
+                'name' => 'Pustakawan SIPUS-Del',
+                'email' => 'pustakawan@del.ac.id',
+                'password' => bcrypt('password123'),
+                'role' => 'admin',
+            ]
+        );
+
         $this->call([
             KategoriSeeder::class,
             BukuSeeder::class,
+            PeminjamanSeeder::class,
         ]);
     }
 }
