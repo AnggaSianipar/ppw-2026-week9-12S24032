@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/peminjamans"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: '{"buku_id":1,"nim_peminjam":"12S24032","nama_peminjam":"Angga Sianipar","durasi_hari":7}'
+order: 4000

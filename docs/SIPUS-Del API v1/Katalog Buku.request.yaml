@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/bukus?tersedia=1&sort=-created_at"
+method: GET
+headers:
+  Accept: application/json
+order: 2000

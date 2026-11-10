@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: c8358fa6-fc63-4735-8859-b6ccae6d0333
+
+localResources:
+  collections:
+    - ../docs/SIPUS-Del API v1
+  specs:
+    - ../docs/openapi-sipus-v1.yaml

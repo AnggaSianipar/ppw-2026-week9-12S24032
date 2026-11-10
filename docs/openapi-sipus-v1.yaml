@@ -1,0 +1,256 @@
+openapi: 3.0.3
+info:
+  title: SIPUS-Del API
+  description: REST API katalog dan sirkulasi perpustakaan.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: Login dan terbitkan token Sanctum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login berhasil
+        '401':
+          $ref: '#/components/responses/Problem401'
+  /api/v1/auth/me:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Profil pemilik token
+      responses:
+        '200':
+          description: Profil pengguna
+  /api/v1/auth/logout:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Cabut token aktif
+      responses:
+        '204':
+          description: Token dicabut
+  /api/v1/bukus:
+    get:
+      summary: Katalog buku terpaginasi
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: kategori_id
+          schema:
+            type: integer
+        - in: query
+          name: tersedia
+          schema:
+            type: integer
+            enum: [0, 1]
+        - in: query
+          name: sort
+          schema:
+            type: string
+            example: -created_at
+      responses:
+        '200':
+          description: Daftar buku
+    post:
+      security:
+        - bearerAuth: []
+      summary: Tambah buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+      responses:
+        '201':
+          description: Buku dibuat
+        '422':
+          $ref: '#/components/responses/Problem422'
+  /api/v1/bukus/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Detail buku
+      responses:
+        '200':
+          description: Detail buku dan riwayat
+        '404':
+          $ref: '#/components/responses/Problem404'
+    put:
+      security:
+        - bearerAuth: []
+      summary: Penggantian penuh buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+      responses:
+        '200':
+          description: Buku diperbarui
+    patch:
+      security:
+        - bearerAuth: []
+      summary: Modifikasi sebagian buku
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookPatch'
+      responses:
+        '200':
+          description: Buku diperbarui
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Hapus buku
+      responses:
+        '204':
+          description: Buku dihapus
+        '409':
+          description: Masih memiliki pinjaman aktif
+  /api/v1/bukus/{id}/referensi-eksternal:
+    get:
+      summary: Metadata OpenLibrary berdasarkan ISBN
+      responses:
+        '200':
+          description: Metadata eksternal atau fallback aman
+  /api/v1/peminjamans:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Daftar transaksi
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [dipinjam, dikembalikan]
+        - in: query
+          name: nim
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Daftar transaksi
+    post:
+      security:
+        - bearerAuth: []
+      summary: Catat peminjaman ACID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanRequest'
+      responses:
+        '201':
+          description: Peminjaman dibuat
+        '409':
+          description: Peminjaman duplikat
+        '422':
+          description: Stok habis
+  /api/v1/peminjamans/{id}/kembalikan:
+    patch:
+      security:
+        - bearerAuth: []
+      summary: Kembalikan buku
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Buku dikembalikan
+        '409':
+          description: Sudah dikembalikan
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+  responses:
+    Problem401:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Problem404:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Problem422:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, format: password}
+    BookRequest:
+      type: object
+      required: [isbn, judul, penulis, penerbit, tahun_terbit, kategori_id, stok]
+      properties:
+        isbn: {type: string}
+        judul: {type: string}
+        penulis: {type: string}
+        penerbit: {type: string}
+        tahun_terbit: {type: integer}
+        kategori_id: {type: integer}
+        stok: {type: integer, minimum: 0}
+        sinopsis: {type: string}
+    BookPatch:
+      description: Semua properti bersifat opsional pada PATCH.
+      type: object
+      properties:
+        isbn: {type: string}
+        judul: {type: string}
+        penulis: {type: string}
+        penerbit: {type: string}
+        tahun_terbit: {type: integer}
+        kategori_id: {type: integer}
+        stok: {type: integer, minimum: 0}
+        sinopsis: {type: string}
+    LoanRequest:
+      type: object
+      required: [buku_id, nim_peminjam, nama_peminjam, durasi_hari]
+      properties:
+        buku_id: {type: integer}
+        nim_peminjam: {type: string}
+        nama_peminjam: {type: string}
+        durasi_hari: {type: integer, minimum: 1}
