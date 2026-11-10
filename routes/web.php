@@ -6,7 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\Soap\LibrarySoapController;
 use Illuminate\Support\Facades\Route;
+
+// Endpoint kompatibilitas untuk aplikasi Yudisium legacy berbasis SOAP.
+Route::get('/soap/sipus.wsdl', [LibrarySoapController::class, 'wsdl']);
+Route::post('/soap/sipus', [LibrarySoapController::class, 'handle']);
+
 //login hanya bisa diakses oleh user yang belum login
 Route::get('/', function () {
     return redirect()->route('login');
