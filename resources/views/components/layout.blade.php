@@ -46,6 +46,7 @@
                 <a class="navbar-brand fw-bold" href="{{ route('buku.index') }}">Perpustakaan IT Del</a>
                 <div class="navbar-nav">
                     @auth
+                        <a class="nav-link d-inline-block" href="{{ route('buku.index') }}">Buku</a>
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-link nav-link">Logout</button>

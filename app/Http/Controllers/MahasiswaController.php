@@ -3,15 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mahasiswa;
+use App\Models\Peminjaman;
 use App\Models\ProgramStudi;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class MahasiswaController extends Controller
 {
     public function index()
     {
         $mahasiswas = Mahasiswa::with('programStudi')->latest()->paginate(10);
-        return view('mahasiswa.index', compact('mahasiswas'));
+        $peminjamanCounts = Peminjaman::query()
+            ->selectRaw('nim_peminjam, count(*) as total')
+            ->groupBy('nim_peminjam')
+            ->pluck('total', 'nim_peminjam');
+
+        return view('mahasiswa.index', compact('mahasiswas', 'peminjamanCounts'));
+    }
+
+    public function peminjaman(Mahasiswa $mahasiswa): View
+    {
+        $peminjamans = Peminjaman::with('buku')
+            ->where('nim_peminjam', $mahasiswa->nim)
+            ->latest()
+            ->paginate(10);
+
+        return view('mahasiswa.peminjaman', compact('mahasiswa', 'peminjamans'));
     }
 
     public function create()
